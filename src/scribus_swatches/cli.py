@@ -1,24 +1,46 @@
+import itertools
 from pathlib import Path
+from typing import Dict, NamedTuple, Optional, Type
+
 import click
-from typing import Dict, Optional
-from .scribus import Convertion
-from .reasonable_colors import ReasonableColorsConverter
+
+from .gimp import GIMPWriter
+from .open_color import OpenColorReader
+from .palette import ConvertionDefinition, PaletteReader, PaletteWriter, convert
+from .reasonable_colors import ReasonableColorsReader
+from .scribus import ScribusWriter
 
 
-convertions: Dict[str, Convertion] = {
-    "ReasonableColors": Convertion(
+class ConvertionInput(NamedTuple):
+    inputf: Path
+    reader: Type[PaletteReader]
+
+
+class ConvertionOutputs(NamedTuple):
+    outputdir: Path
+    writer: Type[PaletteWriter]
+
+
+available_inputs: Dict[str, ConvertionInput] = {
+    "ReasonableColors": ConvertionInput(
         Path("reasonable-colors/reasonable-colors-rgb.scss"),
-        Path("Reasonable_Colors.xml"),
-        ReasonableColorsConverter,
-        "CMYK",
-    )
+        ReasonableColorsReader,
+    ),
+    "OpenColor": ConvertionInput(
+        Path("open-color/open-color.json"), OpenColorReader
+    ),
+}
+
+available_outputs: Dict[str, ConvertionOutputs] = {
+    "Scribus": ConvertionOutputs(Path("scribus/"), ScribusWriter),
+    "GIMP": ConvertionOutputs(Path("gimp/"), GIMPWriter),
 }
 
 
 @click.command()
 @click.option(
     "--output-dir",
-    "-o",
+    "-d",
     type=click.Path(
         dir_okay=True,
         file_okay=False,
@@ -43,44 +65,64 @@ convertions: Dict[str, Convertion] = {
     help="Directory where the vendor files are located.",
 )
 @click.option(
-    "--only", "-n", type=str, help="Comma separated list of conversions to run."
+    "--inputs", "-i", type=str, help="Comma separated list of inputs to run."
+)
+@click.option(
+    "--outputs", "-o", type=str, help="Comma separated list of outputs to run."
 )
 @click.option(
     "--space",
     "-s",
-    type=click.Choice(("RGB", "CMYK"), case_sensitive=True),
+    type=str,
     help="Override default colorspace of output.",
 )
 @click.option("--list", is_flag=True, help="List all available conversions.")
 def main(
-    output_dir: Path, vendor: Path, only: str, space: Optional[str], list: bool
+    output_dir: Path,
+    vendor: Path,
+    inputs: str,
+    outputs: str,
+    space: Optional[str],
+    list: bool,
 ):
     if list:
-        click.echo("Available conversions:")
-        for name in convertions.keys():
+        click.echo("Available inputs:")
+        for name in available_inputs.keys():
+            click.echo(f"- {name}")
+        click.echo("Available outputs:")
+        for name in available_outputs.keys():
             click.echo(f"- {name}")
         return
 
-    if not output_dir.exists():
-        output_dir.mkdir()
+    selected_inputs = inputs.split(",") if inputs else available_inputs.keys()
+    selected_outputs = (
+        outputs.split(",") if outputs else available_outputs.keys()
+    )
 
-    selected_convertions = only.split(",") if only else convertions.keys()
+    selected_convertions = itertools.product(selected_inputs, selected_outputs)
 
-    for name in selected_convertions:
-        if name in convertions:
-            convertion = convertions[name]
-            input_file = (vendor / convertion.inputf).resolve()
-            output_file = (output_dir / convertion.outputf).resolve()
-            space = space or convertion.space
-            with (
-                open(input_file, "r", encoding="utf-8") as fin,
-                open(output_file, "wb") as fout,
-            ):
-                swatch = convertion.converter.convert(fin)
-                swatch.write(fout, space)
-            click.echo(f"Converted {name} to {convertion.outputf!s}")
-        else:
-            click.echo(f"Conversion {name} not found.")
+    for namein, nameout in selected_convertions:
+        if namein not in available_inputs or nameout not in available_outputs:
+            click.echo(f"Conversion {namein} to {nameout} not found.")
+            continue
+        inc = available_inputs[namein]
+        outc = available_outputs[nameout]
+        input_file = (vendor / inc.inputf).resolve()
+        output_writer_dir = (output_dir / outc.outputdir).resolve()
+
+        if not output_writer_dir.exists():
+            output_writer_dir.mkdir()
+
+        output_file = output_writer_dir / namein
+        convertion = ConvertionDefinition(
+            inputf=input_file,
+            outputf=output_file,
+            reader=inc.reader,
+            writer=outc.writer,
+            space=space,
+        )
+        convert(convertion)
+        click.echo(f"Converted {namein} to {nameout}")
 
 
 if __name__ == "__main__":

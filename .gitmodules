@@ -1,3 +1,6 @@
 [submodule "vendor/reasonable-colors"]
 	path = vendor/reasonable-colors
 	url = https://github.com/matthewhowell/reasonable-colors.git
+[submodule "vendor/open-color"]
+	path = vendor/open-color
+	url = https://github.com/yeun/open-color.git

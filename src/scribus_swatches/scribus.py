@@ -1,56 +1,44 @@
 from pathlib import Path
+from typing import BinaryIO
+
+from colormath.color_objects import CMYKColor, sRGBColor
 from lxml import etree
-from colormath.color_objects import ColorBase, sRGBColor, CMYKColor
-from colormath.color_conversions import convert_color
-from typing import NamedTuple, Optional, TextIO, Type
+
+from .palette import Palette, PaletteWriter
 
 
-class SwatchColor(NamedTuple):
+class ScribusWriter(PaletteWriter):
     """
-    A named tuple representing a swatch color.
-    Attributes:
-        name (str): The name of the color swatch.
-        color (ColorBase): The color value associated with the swatch.
+    ScribusWriter is a class that is responsible for writing color palettes to
+    an XML file in the Scribus color format.
     """
 
-    name: str
-    color: ColorBase
+    accepted_spaces = [sRGBColor, CMYKColor]
 
-
-class ScribusSwatch:
-    """
-    A class to manage a collection of color swatches for Scribus.
-    """
-
-    def __init__(self):
-        self.colors: list[SwatchColor] = []
-
-    def add_color(self, name: str, color: ColorBase):
+    @staticmethod
+    def format_filepath(filepath: Path) -> Path:
         """
-        Adds a color to the swatch list.
+        Ensure the filepath ends with the .xml extension.
 
         Args:
-            name (str): The name of the color.
-            color (ColorBase): The color object to add. It can be an instance of
-                        RGBColor, CMYKColor, or any other color type.
+            filepath (Path): The original file path.
 
-        Raises:
-            ValueError: If the provided color space is not 'RGB' or 'CMYK'.
-
+        Returns:
+            Path: The file path with the .xml extension.
         """
-        self.colors.append(SwatchColor(name, color))
+        if filepath.suffix == ".xml":
+            return filepath
+        return filepath.with_suffix(".xml")
 
-    def write(self, f: TextIO, space: Optional[str] = None):
+    @staticmethod
+    def write(f: BinaryIO, palette: Palette):
         """
         Write the colors to an XML file in the Scribus color format.
 
         Args:
             file (str or file-like object): The file path or file object where
                         the XML data will be written.
-            space (str, optional): Overrides the color space for all colors.
-                        If not provided, the color space will be inferred from
-                        the color object. If provided, it must be either 'RGB'
-                        or 'CMYK'.
+            palette (Palette): The palette object containing the colors to write.
 
         Raises:
             ValueError: If an unsupported color type is encountered.
@@ -61,27 +49,16 @@ class ScribusSwatch:
         the color value in hexadecimal format, and CMYK colors will have an
         attribute 'CMYK' with the color value in hexadecimal format.
         """
-        if space.upper() not in ["RGB", "CMYK"]:
-            raise ValueError("space must be either 'RGB' or 'CMYK'")
-        space = space.upper()
-
         root = etree.Element("SCRIBUSCOLORS")
-        for name, color in self.colors:
-            if space is None:
-                if isinstance(color, sRGBColor):
-                    spaceitm = "RGB"
-                elif isinstance(color, CMYKColor):
-                    spaceitm = "CMYK"
-                else:
-                    color = convert_color(color, CMYKColor)
-                    spaceitm = "CMYK"
+        for name, color in palette.colors:
+            if isinstance(color, sRGBColor):
+                space = "RGB"
+            elif isinstance(color, CMYKColor):
+                space = "CMYK"
             else:
-                spaceitm = space
-                target_space = sRGBColor if space == "RGB" else CMYKColor
-                if not isinstance(color, target_space):
-                    color = convert_color(color, target_space)
+                raise ValueError(f"Unsupported color type: {type(color)}")
 
-            if spaceitm == "RGB":
+            if space == "RGB":
                 color_value = color.get_rgb_hex()
                 etree.SubElement(root, "COLOR", RGB=color_value, NAME=name)
             else:  # CMYK
@@ -95,22 +72,3 @@ class ScribusSwatch:
 
         tree = etree.ElementTree(root)
         tree.write(f, pretty_print=True, xml_declaration=True, encoding="UTF-8")
-
-
-class ConverterBase:
-    @staticmethod
-    def convert(f: TextIO) -> ScribusSwatch:
-        raise NotImplementedError(
-            "convert method must be implemented in subclass"
-        )
-
-
-class Convertion(NamedTuple):
-    """
-    An available convertion operation.
-    """
-
-    inputf: Path
-    outputf: Path
-    converter: Type[ConverterBase]
-    space: Optional[str] = None
