@@ -1,11 +1,12 @@
-# Scribus Swatches
+# Palette Convert
 
-This repository contains a tool for managing color swatches in Scribus.
+This repository contains a tool for managing color palettes.
 
 ## Features
 
-- Manage color swatches for Scribus
-- Easy to use command-line interface
+- Create palettes for Scribus or GIMP/Inkscape
+- Palette from Reasonable Colors
+- Palette from Open Color
 
 ## Installation
 
@@ -20,13 +21,13 @@ poetry install
 To see the available options, run:
 
 ```bash
-poetry run scribus-swatches --help
+poetry run palette-convert --help
 ```
 
 ### Options
 
 ```text
-Usage: scribus-swatches [OPTIONS]
+Usage: palette-convert [OPTIONS]
 
 Options:
     -o, --output-dir DIRECTORY  Directory for generated swatches.

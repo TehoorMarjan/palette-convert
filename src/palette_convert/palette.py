@@ -104,7 +104,7 @@ class PaletteAdapter:
         if isinstance(target, str):
             if not hasattr(colormath.color_objects, f"{target}Color"):
                 raise ValueError(f"Unsupported color space: {target}")
-            spaces = [getattr(colormath.color_objects, "f{target}Color")]
+            spaces = [getattr(colormath.color_objects, f"{target}Color")]
         else:
             spaces = target.accepted_spaces
         return cls(spaces)

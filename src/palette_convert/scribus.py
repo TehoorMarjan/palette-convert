@@ -13,7 +13,7 @@ class ScribusWriter(PaletteWriter):
     an XML file in the Scribus color format.
     """
 
-    accepted_spaces = [sRGBColor, CMYKColor]
+    accepted_spaces = [CMYKColor, sRGBColor]
 
     @staticmethod
     def format_filepath(filepath: Path) -> Path:
