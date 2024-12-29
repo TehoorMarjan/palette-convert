@@ -41,8 +41,7 @@ jobs:
       run: |
         poetry run poe package
     - name: Upload to Release
-      uses: Shopify/upload-to-release@v2.0.0
+      uses: csexton/release-asset-action@v3
       with:
-        name: ${{ env.artifact }}
-        path: ${{ env.artifact }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ env.artifact }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
