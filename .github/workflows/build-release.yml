@@ -42,7 +42,7 @@ jobs:
         poetry run poe package
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: shogo82148/actions-create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -52,8 +52,7 @@ jobs:
         draft: true
         prerelease: false
     - name: Upload to Release
-      uses: csexton/release-asset-action@v3
+      uses: shogo82148/actions-upload-release-asset@v1
       with:
-        file: ${{ env.artifact }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        release-url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.artifact }}
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
