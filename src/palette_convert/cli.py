@@ -1,6 +1,6 @@
 import itertools
 from pathlib import Path
-from typing import Dict, NamedTuple, Optional, Type
+from typing import Dict, List, NamedTuple, Optional, Type
 
 import click
 
@@ -27,7 +27,8 @@ available_inputs: Dict[str, ConvertionInput] = {
         ReasonableColorsReader,
     ),
     "OpenColor": ConvertionInput(
-        Path("open-color/open-color.json"), OpenColorReader
+        Path("open-color/open-color.json"),
+        OpenColorReader,
     ),
 }
 
@@ -86,12 +87,7 @@ def main(
     list: bool,
 ):
     if list:
-        click.echo("Available inputs:")
-        for name in available_inputs.keys():
-            click.echo(f"- {name}")
-        click.echo("Available outputs:")
-        for name in available_outputs.keys():
-            click.echo(f"- {name}")
+        do_list()
         return
 
     selected_inputs = inputs.split(",") if inputs else available_inputs.keys()
@@ -99,7 +95,17 @@ def main(
         outputs.split(",") if outputs else available_outputs.keys()
     )
 
-    selected_convertions = itertools.product(selected_inputs, selected_outputs)
+    do_convertions(output_dir, vendor, selected_inputs, selected_outputs, space)
+
+
+def do_convertions(
+    output_dir: Path,
+    vendor: Path,
+    inputs: List[str],
+    outputs: List[str],
+    space: Optional[str],
+):
+    selected_convertions = itertools.product(inputs, outputs)
 
     for namein, nameout in selected_convertions:
         if namein not in available_inputs or nameout not in available_outputs:
@@ -111,7 +117,7 @@ def main(
         output_writer_dir = (output_dir / outc.outputdir).resolve()
 
         if not output_writer_dir.exists():
-            output_writer_dir.mkdir()
+            output_writer_dir.mkdir(parents=True)
 
         output_file = output_writer_dir / namein
         convertion = ConvertionDefinition(
@@ -123,6 +129,21 @@ def main(
         )
         convert(convertion)
         click.echo(f"Converted {namein} to {nameout}")
+
+
+def do_list():
+    click.echo("Available inputs:")
+    for name in available_inputs.keys():
+        click.echo(f"- {name}")
+    click.echo("Available outputs:")
+    for name, itm in available_outputs.items():
+        spaces = ", ".join(
+            (
+                space.__name__.removesuffix("Color")
+                for space in itm.writer.accepted_spaces
+            )
+        )
+        click.echo(f"- {name} (spaces: {spaces})")
 
 
 if __name__ == "__main__":

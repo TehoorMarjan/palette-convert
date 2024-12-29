@@ -22,6 +22,7 @@ To see the available options, run:
 
 ```bash
 poetry run palette-convert --help
+poetry run palette-convert --list
 ```
 
 ### Options
@@ -30,12 +31,22 @@ poetry run palette-convert --help
 Usage: palette-convert [OPTIONS]
 
 Options:
-    -o, --output-dir DIRECTORY  Directory for generated swatches.
-    -v, --vendor DIRECTORY      Directory where the vendor files are located.
-    -n, --only TEXT             Comma separated list of conversions to run.
-    -s, --space [RGB|CMYK]      Override default colorspace of output.
-    --list                      List all available conversions.
-    --help                      Show this message and exit.
+  -d, --output-dir DIRECTORY  Directory for generated swatches.
+  -v, --vendor DIRECTORY      Directory where the vendor files are located.
+  -i, --inputs TEXT           Comma separated list of inputs to run.
+  -o, --outputs TEXT          Comma separated list of outputs to run.
+  -s, --space TEXT            Override default colorspace of output.
+  --list                      List all available conversions.
+  --help                      Show this message and exit.
+```
+
+```text
+Available inputs:
+- ReasonableColors
+- OpenColor
+Available outputs:
+- Scribus (spaces: CMYK, sRGB)
+- GIMP (spaces: sRGB)
 ```
 
 ## License
