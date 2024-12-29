@@ -58,6 +58,6 @@ lint = ["isort", "black"]
 
 [tool.poe.tasks.package]
 shell = '''
-    palette-convert --output-dir "palette-$(poetry version --short)"
-    zip -r "palette-$(poetry version --short).zip" "palette-$(poetry version --short)"
+    palette-convert --output-dir "palette-$(poetry version --short)" || exit 1
+    zip -r "palette-$(poetry version --short).zip" "palette-$(poetry version --short)"  || exit 1
 '''
