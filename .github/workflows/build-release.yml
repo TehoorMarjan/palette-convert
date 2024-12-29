@@ -40,8 +40,20 @@ jobs:
     - name: Package
       run: |
         poetry run poe package
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: Auto generated release
+        draft: true
+        prerelease: false
     - name: Upload to Release
       uses: csexton/release-asset-action@v3
       with:
         file: ${{ env.artifact }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        release-url: ${{ steps.create_release.outputs.upload_url }}
