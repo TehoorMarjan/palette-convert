@@ -1,12 +1,15 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
+# This workflow will install Python dependencies, lint the code, ensure the tag
+# and version match, package the code, create a release, and upload the package
+# to the release.
 name: Build Release
 
 on:
   push:
     tags:
       - 'v*'
+
+env:
+  artifact: ''  # https://github.com/github/vscode-github-actions/issues/47#issuecomment-1488592302
 
 permissions:
   contents: write
