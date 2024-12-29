@@ -21,6 +21,10 @@ classifiers = [
     "Programming Language :: Python :: 3.14"
 ]
 
+# Needs poetry >= 2.0
+#[tool.poetry.requires-plugins]
+#poethepoet = {extras = ["poetry_plugin"], version = "^0.32.0"}
+
 [tool.poetry.dependencies]
 python = "^3.9"
 colormath = "^3.0.0"
@@ -30,6 +34,7 @@ click = "^8.1.8"
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
 black = "^24.10.0"
+poethepoet = "^0.32.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -45,3 +50,14 @@ line_length = 80
 [tool.black]
 line-length = 80
 target-version = ["py39", "py310", "py311", "py312", "py313"]
+
+[tool.poe.tasks]
+isort = "isort ."
+black = "black ."
+lint = ["isort", "black"]
+
+[tool.poe.tasks.package]
+shell = '''
+    palette-convert --output-dir "palette-$(poetry version --short)"
+    zip -r "palette-$(poetry version --short).zip" "palette-$(poetry version --short)"
+'''

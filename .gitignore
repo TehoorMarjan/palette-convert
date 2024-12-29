@@ -77,3 +77,7 @@ dmypy.json
 
 # PyPI configuration file
 .pypirc
+
+# Outputs
+/palette-*/
+/palette-*.zip

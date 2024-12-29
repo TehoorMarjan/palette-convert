@@ -49,6 +49,20 @@ Available outputs:
 - GIMP (spaces: sRGB)
 ```
 
+## Tools
+
+In order to check the compliance of the code with respect to the guidelines, run
+
+```bash
+poetry run poe lint
+```
+
+To generate all palettes and create a zip file, use
+
+```bash
+poetry run poe package
+```
+
 ## License
 
 This repository is licensed under the CC0 License. See the [LICENSE](LICENSE) file for more information.
