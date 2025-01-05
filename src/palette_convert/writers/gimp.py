@@ -4,7 +4,7 @@ from typing import BinaryIO
 
 from colormath.color_objects import sRGBColor
 
-from .palette import Palette, PaletteWriter
+from ..palette import Palette, PaletteWriter
 
 
 class GIMPWriter(PaletteWriter):

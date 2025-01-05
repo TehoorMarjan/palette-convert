@@ -1,40 +1,39 @@
 import itertools
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Type
+from typing import Dict, List, NamedTuple, Optional
 
 import click
 
-from .gimp import GIMPWriter
-from .open_color import OpenColorReader
-from .palette import ConvertionDefinition, PaletteReader, PaletteWriter, convert
-from .reasonable_colors import ReasonableColorsReader
-from .scribus import ScribusWriter
+from .palette import ConvertionDefinition, convert
+from .readers import get_reader
+from .writers import get_writer
 
 
 class ConvertionInput(NamedTuple):
     inputf: Path
-    reader: Type[PaletteReader]
+    reader: str
 
 
 class ConvertionOutputs(NamedTuple):
     outputdir: Path
-    writer: Type[PaletteWriter]
+    writer: str
 
 
 available_inputs: Dict[str, ConvertionInput] = {
     "ReasonableColors": ConvertionInput(
         Path("reasonable-colors/reasonable-colors-rgb.scss"),
-        ReasonableColorsReader,
+        "reasonablecolors",
     ),
     "OpenColor": ConvertionInput(
         Path("open-color/open-color.json"),
-        OpenColorReader,
+        "opencolor",
     ),
 }
 
 available_outputs: Dict[str, ConvertionOutputs] = {
-    "Scribus": ConvertionOutputs(Path("scribus/"), ScribusWriter),
-    "GIMP": ConvertionOutputs(Path("gimp/"), GIMPWriter),
+    "Scribus": ConvertionOutputs(Path("scribus/"), "scribus"),
+    "GIMP": ConvertionOutputs(Path("gimp/"), "gimp"),
+    "LibreOffice": ConvertionOutputs(Path("libreoffice/"), "libreoffice"),
 }
 
 
@@ -123,8 +122,8 @@ def do_convertions(
         convertion = ConvertionDefinition(
             inputf=input_file,
             outputf=output_file,
-            reader=inc.reader,
-            writer=outc.writer,
+            reader=get_reader(inc.reader),
+            writer=get_writer(outc.writer),
             space=space,
         )
         convert(convertion)
@@ -140,7 +139,7 @@ def do_list():
         spaces = ", ".join(
             (
                 space.__name__.removesuffix("Color")
-                for space in itm.writer.accepted_spaces
+                for space in get_writer(itm.writer).accepted_spaces
             )
         )
         click.echo(f"- {name} (spaces: {spaces})")

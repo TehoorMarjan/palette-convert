@@ -4,7 +4,7 @@ from typing import BinaryIO
 from colormath.color_objects import CMYKColor, sRGBColor
 from lxml import etree
 
-from .palette import Palette, PaletteWriter
+from ..palette import Palette, PaletteWriter
 
 
 class ScribusWriter(PaletteWriter):
