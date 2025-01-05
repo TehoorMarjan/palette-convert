@@ -3,7 +3,7 @@ from typing import TextIO
 
 from colormath.color_objects import sRGBColor
 
-from .palette import Palette, PaletteReader
+from ..palette import Palette, PaletteReader
 
 
 class OpenColorReader(PaletteReader):
